@@ -1,4 +1,3 @@
-var stripe = Stripe('sk_test_N052M4ctKJ4GN3KYepb9Wjbx00LEg1FcBl');
 const stripe = require('stripe')('sk_test_N052M4ctKJ4GN3KYepb9Wjbx00LEg1FcBl');
 const Busboy = require("busboy")
 
@@ -68,9 +67,8 @@ exports.handler = async (event) => {
 			/*stripeのアカウントにaccountIdが存在するかチェック。存在しなかったらnot foundを返す*/
       let isRetrieved = typeof (account.id) === 'string'
       if (!isRetrieved) {
-        response.send(body)
         errorf(accountId, params.app_user_id, 'Finalize')
-        return Promise.reject(new Error('Stripe account not be found: ' + accountId))
+        return body
       }
 			/*銀行口座情報ありのアカウントへ変更する（External Accountを作成するという処理）*/
       await stripe.accounts.createExternalAccount(accountId, {
