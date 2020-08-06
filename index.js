@@ -12,6 +12,7 @@ function errorf(accountId, appUserId, message) {
 exports.handler = async (event) => {
     // API Connectorに対して、成功時とエラー時で共通のデータ構造を返す。
     // API Connectorは「`Initialize call` したときのレスポンス」のデータ構造しか扱えない。
+    print(event)
     let body = {
       external_account: {
         id: '',
@@ -43,7 +44,7 @@ exports.handler = async (event) => {
     // `request.rawBody` にパラメータが入る。
     // 参考: https://cloud.google.com/functions/docs/writing/http?hl=ja#writing_http_helloworld-nodejs
     /*Busboyはなんのために使っている？POSTしたformデータを扱うため？*/
-	const busboy = new Busboy({ headers: request.headers })
+	const busboy = new Busboy({ headers: event.headers })
     let params = {}
 		/*busboyにfieldnameとvalueを渡して、何かを始めている。条件分岐が始まっている*/
     busboy.on('field', (fieldname, value, _, __) => {
@@ -53,7 +54,7 @@ exports.handler = async (event) => {
       infof(accountId, params.app_user_id, 'Start')
       infof(accountId, params.app_user_id, 'params ' + JSON.stringify(params))
 			/*POSTじゃないリクエストがされたらInvalid requestを返す*/
-      if (request.method !== 'POST') {
+      if (event.method !== 'POST') {
         infof(accountId, params.app_user_id, 'Finalize')/*Finalizeは何をしている？*/
         return new Promise.reject(new Error('Invalid request'))
       }
@@ -115,5 +116,5 @@ exports.handler = async (event) => {
       infof(accountId, params.app_user_id, 'End')
       return body;
     })
-    busboy.end(request.rawBody)
+    busboy.end(event.rawBody)
 };
