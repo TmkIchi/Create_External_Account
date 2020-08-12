@@ -43,19 +43,16 @@ exports.handler = async (event) => {
     // Cloud Functionsはmultipart/form-dataのリクエストを受け取ると `request.body` が空になり、
     // `request.rawBody` にパラメータが入る。
     // 参考: https://cloud.google.com/functions/docs/writing/http?hl=ja#writing_http_helloworld-nodejs
-    /*Busboyはなんのために使っている？POSTしたformデータを扱うため？*/
 	const busboy = new Busboy({ headers: event.headers })
     let params = {}
-		/*busboyにfieldnameとvalueを渡して、何かを始めている。条件分岐が始まっている*/
     busboy.on('field', (fieldname, value, _, __) => {
       params[fieldname] = value
     }).on('finish', async () => {
       let accountId = params.account_id
       infof(accountId, params.app_user_id, 'Start')
       infof(accountId, params.app_user_id, 'params ' + JSON.stringify(params))
-			/*POSTじゃないリクエストがされたらInvalid requestを返す*/
       if (event.method !== 'POST') {
-        infof(accountId, params.app_user_id, 'Finalize')/*Finalizeは何をしている？*/
+        infof(accountId, params.app_user_id, 'Finalize')
         return new Promise.reject(new Error('Invalid request'))
       }
 			/*stripeのアカウントにaccountIdの情報を取得。エラーがあればエラー処理*/
@@ -65,13 +62,11 @@ exports.handler = async (event) => {
           errorf(accountId, params.app_user_id, error)
           return error
         })
-			/*stripeのアカウントにaccountIdが存在するかチェック。存在しなかったらnot foundを返す*/
       let isRetrieved = typeof (account.id) === 'string'
       if (!isRetrieved) {
         errorf(accountId, params.app_user_id, 'Finalize')
         return body
       }
-			/*銀行口座情報ありのアカウントへ変更する（External Accountを作成するという処理）*/
       await stripe.accounts.createExternalAccount(accountId, {
         external_account: {
           object: 'bank_account',
